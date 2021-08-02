@@ -1,0 +1,96 @@
+---
+title: "Predicting_House_Prices_Using_Linear_Regression"
+author: "Laura Cline"
+date: "02/08/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Libraries 
+
+`MASS` library is a very large collection of datasets and functions. 
+`ISLR` includes datasets from "Intro to Statistical Learning" 
+
+```{r}
+library(MASS)
+library(ISLR)
+```
+
+```{r}
+write.csv(Boston, "boston.csv")
+```
+
+# Simple Linear Regression 
+
+
+
+```{r}
+names(Boston)
+?Boston
+```
+
+We will start by using the `lm()` function to fit a simple linear regression model, with `medv` (median value of owner-occupied homes in $1000s) as the response and `lstat` (lower status of the population as percent) as the predictor. The basic syntax is `lm(y~x, data)`, where `y` is the response, `x` is the predictor, and `data` is the dataset in which these two variables are kept. 
+
+For more detailed information, we use `summary(lm.fit)`. This gives us the p-values and standard errors for the coefficients as well as the $R^_(2)$ statistic and F-statistic for the model. 
+
+```{r}
+lm.fit = lm(medv ~ lstat, data = Boston)
+summary(lm.fit)
+```
+
+We can use the `names()` function in order to find out what other pieces of information are stored in `lm.fit`. 
+
+```{r}
+names(lm.fit)
+```
+
+```{r}
+coef(lm.fit)
+```
+
+The `predict()` function can be used to predict confidence intervals and prediction intervals for the prediction of `medv` for a given value of `lstat`. 
+
+```{r}
+predict(lm.fit, data.frame(lstat=c(5, 10, 15)), interval="confidence")
+```
+```{r}
+predict(lm.fit, data.frame(lstat=c(5,10,15)), interval = "prediction")
+```
+
+For instance, the 95% confidence interval associated with a `lstat` value of 10 is (24.47, 25.63) and the 95% prediction interval is (12.82, 37.28). As expected, the confidence and prediction intervals are centered around the same point (a predicted value of 25.05 for `medv` when `lstat` equals 10), but the latter is substantially wider. 
+
+We will now plot `medv` and `lstat` along with the least squares regression line using the `plot()` and `abline()` functions. 
+
+```{r}
+plot(Boston$lstat, Boston$medv)
+abline(lm.fit)
+```
+
+There is some evidence for non-linearity in the relationship between `lstat` and `medv`. 
+
+The `abline` function can be used to draw any line, not just the least squares regression line. To draw a line with an intercept `a` and slope `b`, we type `abline(a,b)`. Below we experiment with some additional setttings for plotting lines and points. The `lwd=3` command causes the width of the regression line to be increased by a factor of 3; this works for the `plot()` and `lines()` functions also. We can also use the `pch` option to create different plotting symbols.
+
+```{r}
+plot(Boston$lstat, Boston$medv, pch=1:20)
+abline(lm.fit, lwd=3, col="red")
+```
+
+Alternatively, we can compute the residuals from the linear regression fit using the `residuals()` function. The function `rstudent()` will return the studentized residuals, and we can use this function to plot the residuals against the fitted values. 
+
+```{r}
+plot(predict(lm.fit), residuals(lm.fit))
+plot(predict(lm.fit), rstudent(lm.fit))
+```
+
+On the basis of residuals plots, there is some evidence of non-linearity. Leverage statistics can be computed for any number of predictors using the `hatvalues()` function. 
+
+The `whuch.max()` function identifies the index of the largest element of a vector. In this case, it tells us which observation has the largest leverage statistic. 
+
+```{r}
+plot(hatvalues(lm.fit))
+which.max(hatvalues(lm.fit))
+```
+
